@@ -193,8 +193,7 @@ async function displayBalance(index: string) {
   );
   const balance = ethers.utils.formatEther(balanceBN);
   console.log(
-    `The account of address ${
-      accounts[Number(index)].address
+    `The account of address ${accounts[Number(index)].address
     } has ${balance} ETH\n`
   );
 }
@@ -211,8 +210,7 @@ async function displayTokenBalance(index: string) {
   const balanceBN = await token.balanceOf(accounts[Number(index)].address);
   const balance = ethers.utils.formatEther(balanceBN);
   console.log(
-    `The account of address ${
-      accounts[Number(index)].address
+    `The account of address ${accounts[Number(index)].address
     } has ${balance} Tokens\n`
   );
 }
@@ -237,8 +235,7 @@ async function displayPrize(index: string): Promise<string> {
   const prizeBN = await contract.prize(accounts[Number(index)].address);
   const prize = ethers.utils.formatEther(prizeBN);
   console.log(
-    `The account of address ${
-      accounts[Number(index)].address
+    `The account of address ${accounts[Number(index)].address
     } has earned a prize of ${prize} Tokens\n`
   );
   return prize;
