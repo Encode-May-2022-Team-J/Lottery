@@ -87,10 +87,21 @@ contract Lottery is Ownable {
     /// @notice Call the bet function `times` times
     function betMany(uint256 times) public {
         require(times > 0);
+        uint256 localPrizePool = prizePool;
+        uint256 localOwnerPool = ownerPool;
         while (times > 0) {
-            bet();
+            paymentToken.transferFrom(
+                msg.sender,
+                address(this),
+                betPrice + betFee
+            );
+            localOwnerPool += betFee;
+            localPrizePool += betPrice;
+            _slots.push(msg.sender);
             times--;
         }
+        prizePool = localPrizePool;
+        ownerPool = localOwnerPool;
     }
 
     /// @notice Close the lottery and calculates the prize, if any
