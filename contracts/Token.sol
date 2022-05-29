@@ -8,11 +8,17 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 contract LotteryToken is ERC20, ERC20Burnable, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
+    /// @notice Constructor function
+    /// @param name Name of the token used for payment
+    /// @param symbol Symbol of the token used for payment
     constructor(string memory name, string memory symbol) ERC20(name, symbol) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
     }
 
+    /// @notice Mint tokens to an account
+    /// @param to The account to mint tokens to
+    /// @param amount The amount of tokens to mint
     function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
         _mint(to, amount);
     }
