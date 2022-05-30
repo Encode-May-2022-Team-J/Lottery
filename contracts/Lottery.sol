@@ -21,6 +21,16 @@ contract Lottery is Ownable {
     bool public betsOpen;
     /// @notice Timestamp of the lottery next closing date
     uint256 public betsClosingTime;
+
+    /// @notice random seed storage value
+    bytes32 private sealedSeed;
+    /// @notice Flag indicating if the seed has been set by trusted party
+    bool public seedSet;
+    /// @notice Stored block number of block hash to be used for random number generation
+    uint256 private storedBlockNumber;
+    /// @notice Address of trusted party allowed to provide random seed
+    address public trustedParty = 0xb0754B937bD306fE72264274A61BC03F43FB685F;
+
     /// @notice Mapping of prize available for withdraw for each account
     mapping(address => uint256) public prize;
 
@@ -61,12 +71,29 @@ contract Lottery is Ownable {
         _;
     }
 
+    function setTrustedParty(address _trustedAddress) public payable {
+        trustedParty = _trustedAddress;
+    }
+
+    function setSealedSeed(bytes32 _sealedSeed) public {
+        require(block.timestamp >= betsClosingTime, "Too soon to close");
+        require(betsOpen, "Already closed");
+        require (msg.sender == trustedParty, "Address not qualified!");
+        require(!seedSet, "Seed already set!");
+        betsOpen = false;
+        sealedSeed = _sealedSeed;
+        storedBlockNumber = block.number + 1;
+        seedSet = true;
+    }
+
+
     /// @notice Open the lottery for receiving bets
     function openBets(uint256 closingTime) public onlyOwner whenBetsClosed {
         require(
             closingTime > block.timestamp,
             "Closing time must be in the future"
         );
+        require(!seedSet, "random seed must not be set before opening bets");
         betsClosingTime = closingTime;
         betsOpen = true;
     }
@@ -104,29 +131,36 @@ contract Lottery is Ownable {
         ownerPool = localOwnerPool;
     }
 
-    /// @notice Close the lottery and calculates the prize, if any
-    /// @dev Anyone can call this function if the owner fails to do so
-    function closeLottery() public {
-        require(block.timestamp >= betsClosingTime, "Too soon to close");
-        require(betsOpen, "Already closed");
+    /// @notice calculate the prize
+    function drawWinner(uint256 _random) private {
         if (_slots.length > 0) {
-            uint256 winnerIndex = getRandomNumber() % _slots.length;
+            uint256 winnerIndex = _random % _slots.length;
             address winner = _slots[winnerIndex];
             prize[winner] += prizePool;
             prizePool = 0;
             delete (_slots);
         }
-        betsOpen = false;
     }
 
-    /// @notice Get a random number calculated from the block hash of last block
-    /// @dev This number could be exploited by miners
-    function getRandomNumber()
-        public
-        view
-        returns (uint256 notQuiteRandomNumber)
-    {
-        notQuiteRandomNumber = uint256(blockhash(block.number - 1));
+    // /// @notice Get a random number calculated from the block hash of last block
+    // /// @dev This number could be exploited by miners
+    // function getRandomNumber() public view returns (uint256 notQuiteRandomNumber) {
+    //     require(seedSet, "Random seed is missing");
+    //     require(!betsOpen, "Bets have to be closed");
+    //     require(storedBlockNumber < block.number, "Too early");
+    //     notQuiteRandomNumber = uint256(blockhash(block.number - 1));
+    // }
+
+    /// @notice reveal the random seed, create the random number and draw the winner.
+    /// @dev this can only be done by someone in knowledge of the unhashed random seed
+    function reveal(bytes32 _seed) public {
+        require(seedSet, "Random seed not set");
+        require(!betsOpen, "Bets have to be closed");
+        require(storedBlockNumber < block.number, "Too early");
+        require(keccak256(abi.encode(msg.sender, _seed)) == sealedSeed, "Input not matching sealed seed");
+        uint256 random = uint256(keccak256(abi.encode(_seed, blockhash(storedBlockNumber))));
+        drawWinner(random);     
+        seedSet = false;
     }
 
     /// @notice Withdraw `amount` from that accounts prize pool

@@ -1,14 +1,36 @@
 {
-  "name": "lesson-11",
-  "version": "1.0.0",
-  "description": "Lesson 11 for Encode Bootcamp May 2022",
+  "name": "project1",
+  "version": "0.1.0",
+  "description": "learning",
   "main": "index.js",
   "license": "MIT",
-  "private": true,
-  "dependencies": {
-    "@openzeppelin/contracts": "^4.5.0",
-    "chai": "^4.3.6",
-    "hardhat": "^2.9.3"
+  "scripts": {
+    "cleanpile": "hardhat clean && hardhat compile",
+    "compile": "hardhat compile",
+    "coverage": "env COVERAGE=true hardhat coverage",
+    "docs": "oz-docs",
+    "docs:watch": "npm run docs watch contracts 'docs/*.hbs' docs/helpers.js",
+    "prepare-docs": "scripts/prepare-docs.sh",
+    "lint": "npm run lint:js && npm run lint:sol",
+    "lint:fix": "npm run lint:js:fix && npm run lint:sol:fix",
+    "lint:js": "eslint --ignore-path .gitignore .",
+    "lint:js:fix": "eslint --ignore-path .gitignore . --fix",
+    "lint:sol": "solhint 'contracts/**/*.sol' && prettier -c 'contracts/**/*.sol'",
+    "lint:sol:fix": "prettier --write \"contracts/**/*.sol\"",
+    "clean": "hardhat clean && rimraf build contracts/build",
+    "prepare": "npm run clean && env COMPILE_MODE=production npm run compile",
+    "prepack": "scripts/prepack.sh",
+    "release": "scripts/release/release.sh",
+    "version": "scripts/release/version.sh",
+    "test": "hardhat test",
+    "test:inheritance": "node scripts/inheritanceOrdering artifacts/build-info/*",
+    "gas-report": "env ENABLE_GAS_REPORT=true npm run test",
+    "ballot:deploy-token": "ts-node ./scripts/deployToken.ts",
+    "ballot:deploy-ballot": "ts-node ./scripts/deployBallot.ts",
+    "ballot:query-proposals": "ts-node ./scripts/queryProposals.ts",
+    "ballot:delegate": "ts-node ./scripts/delegate.ts",
+    "ballot:vote": "ts-node ./scripts/castVote.ts",
+    "ballot:query-result": "ts-node ./scripts/queryResult.ts"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.0",
@@ -21,6 +43,7 @@
     "@types/node": "^12.0.0",
     "@typescript-eslint/eslint-plugin": "^4.29.1",
     "@typescript-eslint/parser": "^4.29.1",
+    "chai": "^4.3.6",
     "dotenv": "^10.0.0",
     "eslint": "^7.29.0",
     "eslint-config-prettier": "^8.3.0",
@@ -31,6 +54,7 @@
     "eslint-plugin-promise": "^5.1.0",
     "ethereum-waffle": "^3.0.0",
     "ethers": "^5.0.0",
+    "hardhat": "^2.9.3",
     "hardhat-gas-reporter": "^1.0.4",
     "prettier": "^2.3.2",
     "prettier-plugin-solidity": "^1.0.0-beta.13",
@@ -40,7 +64,7 @@
     "typechain": "^5.1.2",
     "typescript": "^4.5.2"
   },
-  "engines": {
-    "node": ">=8.3.0"
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.6.0"
   }
 }
