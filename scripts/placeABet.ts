@@ -23,18 +23,33 @@ async function main() {
 }
 
 async function initContracts() {
+  const tokenFactory = await ethers.getContractFactory("LotteryToken");
+  token = await tokenFactory.deploy("LotteryToken", "LT0");
+  await token.deployed();
+
   const contractFactory = await ethers.getContractFactory("Lottery");
+  // contract = await contractFactory.deploy(
+  //   "LotteryToken",
+  //   "LT0",
+  //   1,
+  //   ethers.utils.parseEther(BET_PRICE.toFixed(18)),
+  //   ethers.utils.parseEther(BET_FEE.toFixed(18))
+  // );
   contract = await contractFactory.deploy(
-    "LotteryToken",
-    "LT0",
+    token.address,
     1,
     ethers.utils.parseEther(BET_PRICE.toFixed(18)),
     ethers.utils.parseEther(BET_FEE.toFixed(18))
   );
   await contract.deployed();
-  const tokenAddress = await contract.paymentToken();
-  const tokenFactory = await ethers.getContractFactory("LotteryToken");
-  token = tokenFactory.attach(tokenAddress);
+
+  // const tokenAddress = await contract.paymentToken();
+  // const tokenFactory = await ethers.getContractFactory("LotteryToken");
+  // token = tokenFactory.attach(tokenAddress);
+
+  const minterRole = await token.MINTER_ROLE();
+  const tx1 = await token.grantRole(minterRole, contract.address);
+  await tx1.wait();
 }
 
 async function initAccounts() {
